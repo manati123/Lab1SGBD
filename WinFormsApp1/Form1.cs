@@ -33,30 +33,34 @@ namespace WinFormsApp1
                + "Initial Catalog = Final_Lab_Doamne_Ajuta;"
                + "Integrated Security = True;");
 
-            this.dataAdapterChild = new SqlDataAdapter($"SELECT * FROM  {this.CHILD_TABLE}",this.dbConnection);
-            this.dataAdapterParent = new SqlDataAdapter($"SELECT * FROM {this.PARENT_TABLE}", this.dbConnection);
+            this.dataAdapterChild = new SqlDataAdapter(ConfigurationManager.AppSettings["SelectChild"], this.dbConnection);
+            this.dataAdapterParent = new SqlDataAdapter(ConfigurationManager.AppSettings["SelectParent"], this.dbConnection);
 
             new SqlCommandBuilder(dataAdapterChild);
 
-            this.dataAdapterChild.Fill(this.dataSet, this.CHILD_TABLE);
-            this.dataAdapterParent.Fill(this.dataSet, this.PARENT_TABLE);
+            this.dataAdapterChild.Fill(this.dataSet, ConfigurationManager.AppSettings["ChildTableName"]);
+            this.dataAdapterParent.Fill(this.dataSet, ConfigurationManager.AppSettings["ParentTableName"]);
+
+            MessageBox.Show(ConfigurationManager.AppSettings["ParentReferencedKey"]);
+           /* MessageBox.Show(dataSet.Tables[ConfigurationManager.AppSettings["ParentTableName"]].Columns[ConfigurationManager.AppSettings["ParentReferencedKey"]]);
+            MessageBox.Show(dataSet.Tables[ConfigurationManager.AppSettings["ChildTableName"]].Columns[ConfigurationManager.AppSettings["ChildForeignKey"]]);*/
 
             var dataRelation = new DataRelation(
-                this.FK,
-                this.dataSet.Tables[this.CHILD_TABLE].Columns["freelancer_id"],
-                this.dataSet.Tables[this.PARENT_TABLE].Columns["freelancer_id"],
-                false
-                );
-            this.dataSet.Relations.Add(dataRelation);
+                 ConfigurationManager.AppSettings["ForeignKey"],
+                 dataSet.Tables[ConfigurationManager.AppSettings["ParentTableName"]].Columns[ConfigurationManager.AppSettings["ParentReferencedKey"]],
+                 dataSet.Tables[ConfigurationManager.AppSettings["ChildTableName"]].Columns[ConfigurationManager.AppSettings["ChildForeignKey"]],
+                 false);
+            dataSet.Relations.Add(dataRelation);
+           // this.dataSet.Relations.Add(dataRelation);
         }
 
         private void InitializeUI()
         {
             this.bindingChild.DataSource = this.dataSet;
-            this.bindingChild.DataMember = this.CHILD_TABLE;
+            this.bindingChild.DataMember = ConfigurationManager.AppSettings["ParentTableName"]; ;
 
             this.bindingParent.DataSource = this.bindingChild;
-            this.bindingParent.DataMember = this.FK;
+            this.bindingParent.DataMember = ConfigurationManager.AppSettings["ForeignKey"];
 
             this.childGridView.DataSource = this.bindingChild;
             this.parentGridView.DataSource = this.bindingParent;
@@ -72,8 +76,8 @@ namespace WinFormsApp1
         {
             SqlCommandBuilder cmd = new SqlCommandBuilder(this.dataAdapterParent);
             cmd.GetInsertCommand();
-            this.dataAdapterChild.Update(dataSet, CHILD_TABLE);
-            this.dataAdapterParent.Update(dataSet, PARENT_TABLE);
+            this.dataAdapterChild.Update(dataSet, ConfigurationManager.AppSettings["ChildTableName"]);
+            this.dataAdapterParent.Update(dataSet, ConfigurationManager.AppSettings["ParentTableName"]);
         }
 
         private void Form1_Load(object sender, EventArgs e)
